@@ -1,0 +1,29 @@
+name: AlMinshar Bot Loop
+
+on:
+  workflow_dispatch:  # Manual trigger or API trigger
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        
+    - name: Run Bot (5.5 Hours limit)
+      run: |
+        python grid_ea_alminshar.py
+      env:
+        # We don't need credentials here since the script uses Firebase REST API directly
+        # and tokens are stored in the database.
+        PYTHONUNBUFFERED: 1
