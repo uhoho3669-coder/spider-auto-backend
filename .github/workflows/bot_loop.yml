@@ -1,29 +1,38 @@
 name: AlMinshar Bot Loop
 
 on:
-  workflow_dispatch:  # Manual trigger or API trigger
+  workflow_dispatch:
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 350
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
-      
+      uses: actions/checkout@v4
+
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
-        
+        python-version: '3.11'
+
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        
-    - name: Run Bot (5.5 Hours limit)
+
+    - name: Run Bot (5.5 hours)
       run: |
-        python grid_ea_alminshar.py
+        timeout 19800 python grid_ea_alminshar.py || true
       env:
-        # We don't need credentials here since the script uses Firebase REST API directly
-        # and tokens are stored in the database.
         PYTHONUNBUFFERED: 1
+
+    - name: Restart self
+      if: always()
+      run: |
+        curl -X POST \
+          -H "Authorization: token ${{ secrets.GH_PAT }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/actions/workflows/bot_loop.yml/dispatches \
+          -d '{"ref":"master"}'
+        echo "Successfully triggered next bot cycle!"
